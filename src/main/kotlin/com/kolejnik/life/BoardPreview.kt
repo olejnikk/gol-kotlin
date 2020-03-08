@@ -9,9 +9,9 @@ import java.awt.event.MouseListener
 import javax.swing.JFrame
 import javax.swing.JPanel
 
-class BoardPreview(private val board: Board, title: String, width: Int, height: Int) : JFrame() {
+class BoardPreview(private val life: Life, title: String, width: Int, height: Int) : JFrame() {
 
-    private val boardPane = BoardPane(board)
+    private val boardPane = BoardPane(life)
 
     init {
         configureFrame(title, width, height)
@@ -30,7 +30,7 @@ class BoardPreview(private val board: Board, title: String, width: Int, height: 
         defaultCloseOperation = EXIT_ON_CLOSE
         setSize(width, height)
         setLocationRelativeTo(null)
-        boardPane.addMouseListener(AddCellMouseListener(board))
+        boardPane.addMouseListener(AddCellMouseListener(life))
         add(boardPane)
     }
 
@@ -38,12 +38,12 @@ class BoardPreview(private val board: Board, title: String, width: Int, height: 
         this.isVisible = true
     }
 
-    class BoardPane(private val board: Board) : JPanel() {
+    class BoardPane(private val life: Life) : JPanel() {
         private val backgroundColor = Color.WHITE
         private val cellColor = Color.BLACK
 
         override fun getPreferredSize(): Dimension {
-            return Dimension(scale(board.width), scale(board.height))
+            return Dimension(scale(life.width), scale(life.height))
         }
 
         override fun paintComponent(g: Graphics?) {
@@ -54,8 +54,8 @@ class BoardPreview(private val board: Board, title: String, width: Int, height: 
 
         private fun drawBoard(g: Graphics?) {
             g?.color = cellColor
-            for2d(0 until board.width, 0 until board.height) { x, y ->
-                if (board.getBoard()[x][y] == ALIVE) {
+            for2d(0 until life.width, 0 until life.height) { x, y ->
+                if (life.getBoard()[x][y] == ALIVE) {
                     g?.fillRect(scale(x), scale(y), pixelSize(), pixelSize())
                 }
             }
@@ -71,9 +71,9 @@ class BoardPreview(private val board: Board, title: String, width: Int, height: 
         }
     }
 
-    class AddCellMouseListener(private val board: Board) : MouseListener {
+    class AddCellMouseListener(private val life: Life) : MouseListener {
         override fun mouseClicked(e: MouseEvent?) {
-            board.randomInjection(e!!.x.div(SCALE), e.y.div(SCALE))
+            life.randomInjection(e!!.x.div(SCALE), e.y.div(SCALE))
         }
 
         override fun mouseReleased(e: MouseEvent?) {
@@ -92,4 +92,5 @@ class BoardPreview(private val board: Board, title: String, width: Int, height: 
             return
         }
     }
+
 }

@@ -1,49 +1,78 @@
-@file:JvmName("Life")
-
 package com.kolejnik.life
 
 import kotlin.random.Random
 
-private const val WIDTH = 200
-private const val HEIGHT = 150
-private const val TIME_TICK_MS = 50L
+class Life(private var board: Array<IntArray>, conf: String) {
+    val width: Int = board.size
+    val height: Int = board[0].size
+    private val configuration = Configuration(conf)
 
-val NEIGHBOURHOOD: IntRange = -1..1
-const val ALIVE = 1
-const val DEAD = 0
-const val SCALE = 3
-const val INJECTION_RADIUS = 20
-const val INITIAL_DENSITY_LEVEL = 10
+    constructor(width: Int, height: Int, conf: String) : this(
+        Array(width) { IntArray(height) },
+        conf
+    )
 
-fun main() {
-    val board = Board(WIDTH, HEIGHT)
+    fun nextGeneration() {
+        val newBoard = newBoard()
+        for2d(
+            0 until width,
+            0 until height
+        ) { x, y ->
+            newBoard[x][y] = nextState(x, y)
+        }
+        board = newBoard
+    }
 
-    val initField: (Int, Int) -> Unit = { x, y ->
-        board.getBoard()[x][y] = when (Random.nextInt(INITIAL_DENSITY_LEVEL)) {
-            0 -> ALIVE
-            else -> DEAD
+    fun randomInjection(x: Int, y: Int) {
+        for2d(
+            -INJECTION_RADIUS until INJECTION_RADIUS,
+            -INJECTION_RADIUS until INJECTION_RADIUS
+        ) { vX, vY ->
+            if (Random.nextBoolean()) {
+                board[x + vX][y + vY] = ALIVE
+            }
         }
     }
-    for2d(0 until WIDTH, 0 until HEIGHT, initField)
 
-    val boardPreview = BoardPreview(board, "Game of Life", SCALE * WIDTH, SCALE * HEIGHT)
-    boardPreview.open()
+    private fun nextState(x: Int, y: Int): Int {
+        val currentState = board[x][y]
+        val neighboursCount = countNeighbours(x, y)
 
-    while (true) {
-        boardPreview.draw()
-        board.nextGeneration()
-        Thread.sleep(TIME_TICK_MS)
-    }
-}
-
-fun scale(x: Int): Int {
-    return x * SCALE
-}
-
-fun for2d(xRange: IntRange, yRange: IntRange, consumer: (x: Int, y: Int) -> Unit) {
-    for (x in xRange) {
-        for (y in yRange) {
-            consumer(x, y)
+        when (currentState) {
+            ALIVE -> {
+                if (configuration.stayAliveNeighbours.contains(neighboursCount)) {
+                    return ALIVE
+                }
+            }
+            DEAD -> {
+                if (configuration.deadToAliveNeighbours.contains(neighboursCount)) {
+                    return ALIVE
+                }
+            }
         }
+        return DEAD
     }
+
+    private fun countNeighbours(x: Int, y: Int): Int {
+        var neighboursCount = 0
+        for2d(NEIGHBOURHOOD, NEIGHBOURHOOD) { vX, vY ->
+            if (!(vX == 0 && vY == 0) && isInsideBoard(x + vX, y + vY)) {
+                neighboursCount += board[x + vX][y + vY]
+            }
+        }
+        return neighboursCount
+    }
+
+    private fun isInsideBoard(x: Int, y: Int): Boolean {
+        return x in 0 until width && y in 0 until height
+    }
+
+    private fun newBoard(): Array<IntArray> {
+        return Array(width) { IntArray(height) }
+    }
+
+    fun getBoard(): Array<IntArray> {
+        return board
+    }
+
 }

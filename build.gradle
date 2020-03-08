@@ -22,4 +22,4 @@ dependencies {
 
 apply plugin: 'application'
 
-mainClassName = 'com.kolejnik.life.Life'
+mainClassName = 'com.kolejnik.life.LifeApp'
